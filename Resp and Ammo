@@ -1,0 +1,147 @@
+#include <EEPROM.h>
+#include <IRremote.h>
+// Pin 3 выход для ИК диода
+  #define LED_R 4
+  #define EEPROM_ADDR 0
+  #define LED_G 5
+  #define LED_B 6
+  #define ZUMMER 7
+  #define LED_LAMP 2
+  #define LED_OFF 8
+  #define BUTTON 9
+int resp_mode = 0;
+int RECV_PIN = 11;
+IRrecv irrecv(RECV_PIN);
+
+decode_results results;
+ uint32_t timmer = 0;
+ int timmer_2 = 0;
+ uint32_t timmer_3 = 0;
+
+IRsend irsend;
+
+
+
+void setup(){
+
+  digitalWrite(3, LOW);
+  pinMode(LED_LAMP, OUTPUT);
+  pinMode(LED_R, OUTPUT);
+  pinMode(LED_G, OUTPUT);
+  pinMode(LED_B, OUTPUT);
+  pinMode(LED_OFF, OUTPUT);
+  pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(ZUMMER, OUTPUT);  
+  irrecv.enableIRIn();  // Start the receiver  
+    if(EEPROM.read(EEPROM_ADDR) > 0)
+  resp_mode = EEPROM.read(EEPROM_ADDR);  
+    boolean a = 1;
+  while(millis() - timmer <= 50) {    
+    digitalWrite(LED_R, HIGH);
+    delay(100);
+  if(!digitalRead(BUTTON)){   // вход в режим Админа  
+    while(a){
+      ledHigh(resp_mode);
+      if(!digitalRead(BUTTON) && (millis() - timmer >= 500)){
+        digitalWrite(ZUMMER, HIGH);
+        delay(50);
+        digitalWrite(ZUMMER, LOW);        
+        resp_mode++;
+        if(resp_mode > 3)
+        resp_mode = 0;        
+        timmer = millis();
+      }
+      if(millis() - timmer >= 3000)
+        a = !a;
+    }    
+  }
+
+  }
+for(int i = 0; i < 6; i++){
+    ledHigh(i);
+delay(50); 
+   }
+    ledHigh(resp_mode);
+    EEPROM.update(EEPROM_ADDR, resp_mode);
+}
+
+void loop() {      
+      if(!digitalRead(BUTTON) &&  (millis() - timmer >= 1000)){
+switch (resp_mode) {
+      case 0: 
+  irsend.sendSony(0x8305E8, 24);
+  delay(20); // Respaund Life and Ammo
+    digitalWrite(ZUMMER, HIGH);
+    digitalWrite(LED_LAMP, HIGH);  
+    delay(40);
+    digitalWrite(LED_LAMP, LOW);    
+    digitalWrite(ZUMMER, LOW);
+    timmer = millis();
+    break;
+    case 1: 
+    irsend.sendSony(0x8306E8, 24); // AmmoMax
+    digitalWrite(ZUMMER, HIGH);
+    digitalWrite(LED_LAMP, HIGH);  
+    delay(40);
+    digitalWrite(LED_LAMP, LOW);    
+    digitalWrite(ZUMMER, LOW);
+    timmer = millis();
+    break;
+    case 2: 
+    irsend.sendSony(0x0, 24);
+    digitalWrite(ZUMMER, HIGH);
+    digitalWrite(LED_LAMP, HIGH);  
+    delay(40);
+    digitalWrite(LED_LAMP, LOW);    
+    digitalWrite(ZUMMER, LOW);
+    timmer = millis();
+    break;
+break;    
+}
+}
+
+}
+
+void ledHigh(int a) {
+switch (a) {
+      case 0: 
+        digitalWrite(LED_R, HIGH);
+        digitalWrite(LED_G, LOW);
+        digitalWrite(LED_B, LOW);
+
+break;               
+      case 1:
+        digitalWrite(LED_G, HIGH);
+        digitalWrite(LED_R, LOW);
+        digitalWrite(LED_B, LOW);
+        break;    
+      
+      case 2:
+        digitalWrite(LED_B, HIGH);
+        digitalWrite(LED_R, LOW);
+        digitalWrite(LED_G, LOW); 
+      break;     
+       
+       case 3:
+        digitalWrite(LED_B, HIGH);
+        digitalWrite(LED_R, HIGH);
+        digitalWrite(LED_G, LOW); 
+      break;           
+      
+      case 4:
+        digitalWrite(LED_B, HIGH);
+        digitalWrite(LED_R, LOW);
+        digitalWrite(LED_G, HIGH); 
+      break;
+      case 5:
+        digitalWrite(LED_B, LOW);
+        digitalWrite(LED_R, HIGH);
+        digitalWrite(LED_G, HIGH); 
+      break;    
+           
+      case 6:
+        digitalWrite(LED_B, HIGH);
+        digitalWrite(LED_R, HIGH);
+        digitalWrite(LED_G, HIGH); 
+      break;     
+       }}
